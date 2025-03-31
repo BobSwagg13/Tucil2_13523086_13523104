@@ -5,7 +5,7 @@
 #include <filesystem>
 
 #include "FileProcessing.hpp"
-
+#include "EMM.hpp"
 
 using namespace std;
 namespace fs = std::filesystem;
