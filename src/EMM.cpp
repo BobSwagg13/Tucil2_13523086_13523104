@@ -118,7 +118,7 @@ double entropy(const vector<vector<vector<double>>>& img, int x, int y, int widt
     double entropyG = -sumG;
     double entropyB = -sumB;
 
-    return (entropyR + entropyG + entropyB) / 3;
+    return (entropyR + entropyG + entropyB) / (3 * N);
 }
 
 

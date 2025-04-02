@@ -14,7 +14,7 @@ using namespace std;
 namespace fs = std::filesystem;
 
 int main() {
-    string inputPath, gifPath, fileName;
+    string inputPath, outputPath, gifPath, fileName;
     fs::path inputPathObj, gifPathObj;
     uintmax_t originalFileSize;
     int errorMethod;
@@ -28,20 +28,30 @@ int main() {
         cout << "Alamat absolut gambar yang akan dikompresi: ";
         getline(cin, inputPath);
     
-        inputPathObj = fs::path(inputPath);  
-    
+        inputPathObj = fs::path(inputPath);
+ 
+        if (!inputPathObj.is_absolute()) {
+            cout << "Path harus absolut. Masukkan path lengkap.\n";
+            continue;
+        }
+
         if (!fs::exists(inputPathObj)) {
             cout << "File tidak ditemukan. Silakan masukkan ulang.\n";
-        } else {
-            string ext = inputPathObj.extension().string();
-            originalFileSize = fs::file_size(inputPath);
-            if (ext != ".png" && ext != ".jpg" && ext != ".jpeg") {
-                cout << "File bukan PNG atau JPG. Masukkan file yang valid.\n";
-            } else {
-                break;
-            }
+            continue;
         }
+
+        string ext = inputPathObj.extension().string();
+        for (char& c : ext) c = std::tolower(c);
+ 
+        if (ext != ".png" && ext != ".jpg" && ext != ".jpeg") {
+            cout << "File bukan PNG atau JPG. Masukkan file yang valid.\n";
+            continue;
+        }
+
+        originalFileSize = fs::file_size(inputPath);
+        break;
     }
+    
 
     fs::path pathObj(inputPath);
     fileName = pathObj.filename().string();
@@ -56,8 +66,8 @@ int main() {
     cout << "5. Structural Similarity Index (SSIM)\n";
     cout << "Masukkan nomor metode: ";
 
-    while (!(cin >> errorMethod) || errorMethod < 1 || errorMethod > 6) {
-        cout << "Metode tidak valid. Masukkan hanya bisa dalam rentang 1 - 6: ";
+    while (!(cin >> errorMethod) || errorMethod < 1 || errorMethod > 5) {
+        cout << "Metode tidak valid. Masukkan hanya bisa dalam rentang 1 - 5: ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
@@ -95,10 +105,41 @@ int main() {
     quadTree.nodeToMatrix(root, compressedImage);
 
     string timestamp = FileProcessing::getCurrentDateTimeString();
-    string compressedPath = "test/output/";
-    compressedPath += timestamp + "_" + fileName;
-    FileProcessing::saveImageAsPNG(compressedPath, compressedImage);
-    uintmax_t compressedFileSize = fs::file_size(compressedPath);
+
+    while (true) {
+        std::cout << "[INPUT] Alamat absolut gambar hasil kompresi: ";
+        std::getline(std::cin, outputPath);
+
+        fs::path outputPathObj(outputPath);
+        fs::path parentDir = outputPathObj.parent_path();
+        std::string ext = outputPathObj.extension().string();
+
+        for (char& c : ext) c = std::tolower(c);
+
+        if (!outputPathObj.is_absolute()) {
+            std::cout << "Path harus absolut. Masukkan path lengkap.\n";
+            continue;
+        }
+
+        if (ext != ".jpg" && ext != ".jpeg" && ext != ".png") {
+            std::cout << "Ekstensi file tidak valid! Gunakan .jpg, .jpeg, atau .png.\n";
+            continue;
+        }
+
+        if (parentDir.empty() || fs::exists(parentDir)) {
+            std::cout << "Direktori valid. File akan disimpan ke: " << outputPath << std::endl;
+            break;
+        } else {
+            std::cout << "irektori tidak ditemukan: \"" << parentDir.string() << "\"\n";
+            std::cout << "Silakan masukkan path yang valid.\n";
+        }
+    }
+    
+
+    //string compressedPath = "test/output/";
+    //compressedPath += timestamp + "_" + fileName;
+    FileProcessing::saveImageAsPNG(outputPath, compressedImage);
+    uintmax_t compressedFileSize = fs::file_size(outputPath);
 
     int depth = quadTree.getDepth(root);
     int nodeCount = quadTree.countNode(root);
@@ -110,14 +151,6 @@ int main() {
     cout << "Alamat output GIF proses kompresi (optional, bonus): ";
     getline(cin, gifPath);
     // TODO: Support GIF output as bonus
-
-    // === PROCESSING ===
-    // TODO: Start timing execution
-    // TODO: Read input image
-    // TODO: Perform quadtree compression using selected error method and threshold
-    // TODO: Adjust threshold dynamically if targetCompression > 0
-    // TODO: Save compressed image and optionally generate GIF
-    // TODO: End timing execution
 
     // === OUTPUTS ===
     double compressionRatio = 100 * (1.0 - (double)compressedFileSize / originalFileSize);
