@@ -2,7 +2,7 @@
 CXX = g++
 CXXFLAGS = -std=c++17 -I./src
 TARGET = bin/main.exe
-SRC = src/main.cpp src/FileProcessing.cpp src/EMM.cpp
+SRC = src/main.cpp src/FileProcessing.cpp src/EMM.cpp src/QuadTree.cpp
 
 # === BUILD RULE ===
 all: $(TARGET)

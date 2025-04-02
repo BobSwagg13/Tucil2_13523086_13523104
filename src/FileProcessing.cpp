@@ -1,7 +1,9 @@
 #include "FileProcessing.hpp"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "stb_image_write.h"
 
 using namespace std;
 
@@ -20,7 +22,7 @@ FileProcessing::Image FileProcessing::loadImageAsDouble(const string& filename) 
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            for (int c = 0; c < channels; ++c) {
+            for (int c = 0; c < 3; ++c) {
                 int index = (y * width + x) * channels + c;
                 image.data[y][x][c] = static_cast<double>(img[index]);
             }
@@ -34,7 +36,7 @@ FileProcessing::Image FileProcessing::loadImageAsDouble(const string& filename) 
 void FileProcessing::printImage(const FileProcessing::Image& image) {
     for (int y = 0; y < image.height; ++y) {
         for (int x = 0; x < image.width; ++x) {
-            for (int c = 0; c < image.channels; ++c) {
+            for (int c = 0; c < 3; ++c) {
                 cout << image.data[y][x][c] << " ";
             }
             cout << endl;
@@ -42,3 +44,41 @@ void FileProcessing::printImage(const FileProcessing::Image& image) {
         cout << endl;
     }
 }
+
+string FileProcessing::getCurrentDateTimeString() {
+    auto now = chrono::system_clock::now();
+    time_t now_c = chrono::system_clock::to_time_t(now);
+    tm local_tm;
+
+    #ifdef _WIN32
+        localtime_s(&local_tm, &now_c);
+    #else
+        localtime_r(&now_c, &local_tm);
+    #endif
+
+    stringstream ss;
+    ss << put_time(&local_tm, "%Y%m%d_%H%M%S");  
+    return ss.str();
+}
+
+void FileProcessing::saveImageAsPNG(const std::string& pathName, const std::vector<std::vector<std::vector<double>>>& img) {
+    int height = img.size();
+    int width = img[0].size();
+    int channels = img[0][0].size();
+
+    vector<unsigned char> output(width * height * channels);
+
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            for (int c = 0; c < channels; ++c) {
+                double val = img[y][x][c];
+                val = clamp(val, 0.0, 255.0); 
+                output[(y * width + x) * channels + c] = static_cast<unsigned char>(val);
+            }
+        }
+    }
+    cout << "Saving image to " << pathName << endl;
+    stbi_write_jpg(pathName.c_str(), width, height, channels, output.data(), 100); 
+
+}
+

@@ -3,12 +3,11 @@
 
 #include <vector>
 #include <cmath>
-#include <iostream>
 
-static double average(const std::vector<std::vector<std::vector<double>>>& img, int channel);
-static double variance(const std::vector<std::vector<std::vector<double>>>& img);
-static double meanAbsoluteDeviation(const std::vector<std::vector<std::vector<double>>>& img);
-static double maxPixelDifference(const std::vector<std::vector<std::vector<double>>>& img);
-static double entropy(const std::vector<std::vector<std::vector<double>>>& img);
-static double structuralSimilarityIndex(const std::vector<std::vector<std::vector<double>>>& img1, const std::vector<std::vector<std::vector<double>>>& img2);
+double average(const std::vector<std::vector<std::vector<double>>>& img, int channel, int x, int y, int width, int height);
+double variance(const std::vector<std::vector<std::vector<double>>>& img, int x, int y, int width, int height);
+double meanAbsoluteDeviation(const std::vector<std::vector<std::vector<double>>>& img, int x, int y, int width, int height);
+double maxPixelDifference(const std::vector<std::vector<std::vector<double>>>& img, int x, int y, int width, int height);
+double entropy(const std::vector<std::vector<std::vector<double>>>& img, int x, int y, int width, int height);
+double structuralSimilarityIndex(const std::vector<std::vector<std::vector<double>>>& img1, const std::vector<std::vector<std::vector<double>>>& img2);
 #endif
