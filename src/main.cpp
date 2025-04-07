@@ -102,7 +102,14 @@ int main() {
     QuadTree quadTree = QuadTree();
     QuadTree::Node* root = quadTree.buildTree(image.data, 0, 0, image.width, image.height);
     quadTree.divideTree(root, image.data, errorMethod, threshold, minBlockSize);
+    QuadTree::bfsAveragePerLevelImage(root, image.data, [](const std::vector<std::vector<std::vector<double>>>& img, int level) {
+        std::string filename = "gifTemp/level_" + std::to_string(level) + ".jpg";
+        FileProcessing::saveImageAsPNG(filename, img);
+        std::cout << "Saved level " << level << " to " << filename << std::endl;
+    });
     quadTree.nodeToMatrix(root, compressedImage);
+    std::string command = "convert -delay 50 -loop 0 gifTemp/level_*.jpg final_output.gif";
+    system(command.c_str());
 
     string timestamp = FileProcessing::getCurrentDateTimeString();
 

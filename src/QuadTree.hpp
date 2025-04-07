@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <algorithm>
+#include <functional>
+#include <queue>
 
 class QuadTree {
     public:
@@ -27,5 +29,7 @@ class QuadTree {
         static int countNode(Node* node);
         static int getDepth(Node* node);
         static void deleteTree(Node* node);
+        static void bfsAveragePerLevelImage(Node* node, const std::vector<std::vector<std::vector<double>>>& img, std::function<void(const std::vector<std::vector<std::vector<double>>>&, int)> handleLevelImag);
+        static void avgTheRGB_fromOriginal(const Node* node,std::vector<std::vector<std::vector<double>>>& targetImg,const std::vector<std::vector<std::vector<double>>>& sourceImg);
     };  
 #endif

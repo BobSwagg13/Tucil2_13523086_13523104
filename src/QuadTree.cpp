@@ -23,24 +23,18 @@ QuadTree::Node* QuadTree::buildTree(const vector<vector<vector<double>>>& img, i
 }
 
 void QuadTree::divideTree(QuadTree::Node* node, const vector<vector<vector<double>>>& img, int method, double threshold, int minBlockSize) {
-    if (node->width <= minBlockSize || node->height <= minBlockSize) {
-        return;
-    }
-
+    if (node->width <= minBlockSize || node->height <= minBlockSize) return;
+    
     double error;
-    if(method == 1) {
-        error = variance(img, node->x, node->y, node->width, node->height);
-    } else if(method == 2) {
-        error = meanAbsoluteDeviation(img, node->x, node->y, node->width, node->height);
-    } else if(method == 3) {
-        error = maxPixelDifference(img, node->x, node->y, node->width, node->height);
-    } else if(method == 4) {
-        error = entropy(img, node->x, node->y, node->width, node->height);
+    switch (method) {
+        case 1: error = variance(img, node->x, node->y, node->width, node->height); break;
+        case 2: error = meanAbsoluteDeviation(img, node->x, node->y, node->width, node->height); break;
+        case 3: error = maxPixelDifference(img, node->x, node->y, node->width, node->height); break;
+        case 4: error = entropy(img, node->x, node->y, node->width, node->height); break;
+        default: return;
     }
 
-    if (error <= threshold) {
-        return;
-    }
+    if (error <= threshold) {return;}
 
     int w1 = node->width / 2;
     int w2 = node->width - w1;      // ensures w1 + w2 == width
@@ -121,4 +115,73 @@ void QuadTree::deleteTree(QuadTree::Node* node) {
     deleteTree(node->bottomLeft);
     deleteTree(node->bottomRight);
     delete node;
+}
+
+void QuadTree::avgTheRGB_fromOriginal(const Node* node, vector<vector<vector<double>>>& targetImg,const vector<vector<vector<double>>>& sourceImg)
+{
+    double avgR = 0, avgG = 0, avgB = 0;
+    for (int i = node->y; i < node->y + node->height; i++) {
+        for (int j = node->x; j < node->x + node->width; j++) {
+            avgR += sourceImg[i][j][0];
+            avgG += sourceImg[i][j][1];
+            avgB += sourceImg[i][j][2];
+        }
+    }
+    int area = node->width * node->height;
+    avgR /= area;
+    avgG /= area;
+    avgB /= area;
+
+    for (int i = node->y; i < node->y + node->height; i++) {
+        for (int j = node->x; j < node->x + node->width; j++) {
+            targetImg[i][j][0] = avgR;
+            targetImg[i][j][1] = avgG;
+            targetImg[i][j][2] = avgB;
+        }
+    }
+}
+
+void QuadTree::bfsAveragePerLevelImage(Node* root, const vector<vector<vector<double>>>& originalImg, function<void(const vector<vector<vector<double>>>&, int)> handleLevelImage) {
+    if (!root) return;
+
+    std::queue<std::pair<Node*, int>> q;
+    q.push({root, 0});
+    int currentDepth = 0;
+
+    std::vector<Node*> currentLevelNodes;
+    auto currentImg = originalImg;
+
+    while (!q.empty()) {
+        Node* node = q.front().first;
+        int depth = q.front().second;
+        q.pop();
+
+        if (depth != currentDepth) {
+            auto imgCopy = currentImg;
+            for (Node* n : currentLevelNodes) {
+                avgTheRGB_fromOriginal(n, imgCopy, originalImg);
+            }
+
+            handleLevelImage(imgCopy, currentDepth);
+            currentImg = imgCopy;
+                currentLevelNodes.clear();
+            currentDepth = depth;
+        }
+        
+        currentLevelNodes.push_back(node);
+        if (node->topLeft) {
+            q.push({node->topLeft, depth + 1});
+            q.push({node->topRight, depth + 1});
+            q.push({node->bottomLeft, depth + 1});
+            q.push({node->bottomRight, depth + 1});
+        }
+    }
+
+    if (!currentLevelNodes.empty()) {
+        auto imgCopy = currentImg;
+        for (Node* n : currentLevelNodes) {
+            avgTheRGB_fromOriginal(n, imgCopy, originalImg);
+        }
+        handleLevelImage(imgCopy, currentDepth);
+    }
 }
