@@ -142,6 +142,8 @@ int main() {
         if (!targetCompressionEnabled) {
             break;
         } else {
+            fs::create_directories("targetCompressionTemp");
+
             outputPath = "targetCompressionTemp/" + fileName;
             FileProcessing::saveImageAsPNG(outputPath, compressedImage);
             uintmax_t compressedFileSize = fs::file_size(outputPath);
@@ -176,6 +178,7 @@ int main() {
         iteration++;
     }
     
+    fs::create_directories("gifTemp");
     int counter = 0;
     QuadTree::bfsAveragePerLevelImage(root, image.data, [&counter, fileType](const std::vector<std::vector<std::vector<double>>>& img, int level) {
         if(fileType == ".png"){
