@@ -23,7 +23,7 @@ QuadTree::Node* QuadTree::buildTree(const vector<vector<vector<double>>>& img, i
 }
 
 void QuadTree::divideTree(QuadTree::Node* node, const vector<vector<vector<double>>>& img, int method, double threshold, int minBlockSize) {
-    if (node->width <= minBlockSize || node->height <= minBlockSize) return;
+    if (node->width * node->height <= minBlockSize) return;
     
     double error;
     switch (method) {
