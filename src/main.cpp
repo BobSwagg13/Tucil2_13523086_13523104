@@ -14,7 +14,7 @@ using namespace std;
 namespace fs = std::filesystem;
 
 int main() {
-    string inputPath, outputPath, gifPath, fileName;
+    string inputPath, outputPath, gifPath, fileName, fileType;
     fs::path inputPathObj, gifPathObj;
     uintmax_t originalFileSize;
     int errorMethod;
@@ -43,8 +43,9 @@ int main() {
         }
 
         string ext = inputPathObj.extension().string();
+        fileType = ext;
         for (char& c : ext) c = std::tolower(c);
- 
+        cout << "File type: " << fileType << endl;
         if (ext != ".png" && ext != ".jpg" && ext != ".jpeg") {
             cout << "File bukan PNG atau JPG. Masukkan file yang valid.\n";
             continue;
@@ -170,21 +171,25 @@ int main() {
             
             cout << "Compressed file size: " << compressedFileSize << " bytes" << endl;
             cout << "Target compression: " << targetCompression << "%" << endl;
-
             cout << iteration << " Threshold: " << threshold<< ", Compression ratio: " << compressionNew << endl;
         }
         iteration++;
     }
-
-    QuadTree::bfsAveragePerLevelImage(root, image.data, [](const std::vector<std::vector<std::vector<double>>>& img, int level) {
-        std::string filename = "gifTemp/level_" + std::to_string(level) + ".jpg";
-        FileProcessing::saveImageAsPNG(filename, img);
-        std::cout << "Saved level " << level << " to " << filename << std::endl;
+    
+    int counter = 0;
+    QuadTree::bfsAveragePerLevelImage(root, image.data, [&counter, fileType](const std::vector<std::vector<std::vector<double>>>& img, int level) {
+        if(fileType == ".png"){
+            FileProcessing::saveImageAsPNG("gifTemp/level_" + std::to_string(level + 100) + ".png", img);
+        }
+        else if(fileType == ".jpg" || fileType == ".jpeg"){
+            FileProcessing::saveImageAsPNG("gifTemp/level_" + std::to_string(level + 100) + ".jpg", img);
+        }
+        else{
+            cout << "Ekstensi file tidak valid!" << endl;
+        }
+        counter += 1;
     });
-    //std::string command = "convert -delay 50 -loop 0 gifTemp/level_*.jpg final_output.gif";
-    std::string command = "magick -delay 50 -loop 0 gifTemp/level_*.jpg final_output.gif";
-    system(command.c_str());
-
+    
     auto end = chrono::high_resolution_clock::now();
 
     while (true) {
@@ -216,7 +221,69 @@ int main() {
         }
     }
     
+    while (true) {
+        std::cout << "Alamat output GIF proses kompresi: ";
+        std::getline(std::cin, gifPath);
+
+        gifPath.erase(std::remove(gifPath.begin(), gifPath.end(), ' '), gifPath.end());
+
+        fs::path outputPathObj(gifPath);
+        fs::path parentDir = outputPathObj.parent_path();
+        std::string ext = outputPathObj.extension().string();
+
+        for (char& c : ext) c = std::tolower(c);
+
+        if (!outputPathObj.is_absolute()) {
+            std::cout << "Path harus absolut. Masukkan path lengkap.\n";
+            continue;
+        }
+
+        if (ext != ".gif") {
+            std::cout << "Ekstensi file tidak valid! Gunakan .gif.\n";
+            continue;
+        }
+
+        if (parentDir.empty() || fs::exists(parentDir)) {
+            std::cout << "Direktori valid. GIF akan disimpan ke: " << gifPath << std::endl;
+            break;
+        } else {
+            std::cout << "Direktori tidak ditemukan: \"" << parentDir.string() << "\"\n";
+            std::cout << "Silakan masukkan path yang valid.\n";
+        }
+    }
+
     FileProcessing::saveImageAsPNG(outputPath, compressedImage);
+    cout << "Saving GIF to " << gifPath << endl;
+
+    string command = "magick -delay 50 -loop 0 ";
+
+    for (int i = 100; i < 100 + counter; i++) {
+        command += "gifTemp/level_" + std::to_string(i) + fileType + " ";
+    }
+
+    command += gifPath;
+
+    cout << "Running command: " << command << endl;
+    int result = system(command.c_str());
+
+    if (result != 0) {
+        cout << "Failed to create GIF. Check if ImageMagick is properly installed and available in PATH." << endl;
+    } else {
+        cout << "GIF successfully created." << endl;
+    }
+
+    
+    for(int i = 100; i < 100 + counter; i++){
+        if(fileType == ".png"){
+            string filename = "gifTemp/level_" + std::to_string(i) + ".png";
+            fs::remove(filename);
+        }
+        else{
+            string filename = "gifTemp/level_" + std::to_string(i) + ".jpg";
+            fs::remove(filename);
+        }
+    }
+
     uintmax_t compressedFileSize = fs::file_size(outputPath);
 
     int depth = quadTree.getDepth(root);
@@ -226,9 +293,6 @@ int main() {
     
     chrono::duration<double> duration = end - start;
 
-    cout << "Alamat output GIF proses kompresi (optional, bonus): ";
-    getline(cin, gifPath);
-    // TODO: Support GIF output as bonus
 
     // === OUTPUTS ===
     double compressionRatio = 100 * (1.0 - (double)compressedFileSize / originalFileSize);

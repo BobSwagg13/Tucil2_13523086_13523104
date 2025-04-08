@@ -24,7 +24,6 @@ class FileProcessing {
     
         static Image loadImageAsDouble(const std::string& filename);
         static void printImage(const Image& image);
-        static std::string getCurrentDateTimeString();
         static void saveImageAsPNG(const std::string& filename, const std::vector<std::vector<std::vector<double>>>& img);
     };
 

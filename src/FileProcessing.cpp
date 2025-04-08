@@ -45,22 +45,6 @@ void FileProcessing::printImage(const FileProcessing::Image& image) {
     }
 }
 
-string FileProcessing::getCurrentDateTimeString() {
-    auto now = chrono::system_clock::now();
-    time_t now_c = chrono::system_clock::to_time_t(now);
-    tm local_tm;
-
-    #ifdef _WIN32
-        localtime_s(&local_tm, &now_c);
-    #else
-        localtime_r(&now_c, &local_tm);
-    #endif
-
-    stringstream ss;
-    ss << put_time(&local_tm, "%Y%m%d_%H%M%S");  
-    return ss.str();
-}
-
 void FileProcessing::saveImageAsPNG(const std::string& pathName, const std::vector<std::vector<std::vector<double>>>& img) {
     int height = img.size();
     int width = img[0].size();

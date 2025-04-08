@@ -41,9 +41,9 @@ void QuadTree::divideTree(QuadTree::Node* node, const vector<vector<vector<doubl
     }
 
     int w1 = node->width / 2;
-    int w2 = node->width - w1;      // ensures w1 + w2 == width
+    int w2 = node->width - w1;      
     int h1 = node->height / 2;
-    int h2 = node->height - h1;     // ensures h1 + h2 == height
+    int h2 = node->height - h1;     
 
     node->topLeft = buildTree(img, node->x, node->y, w1, h1);
     node->topRight = buildTree(img, node->x + w1, node->y, w2, h1);
