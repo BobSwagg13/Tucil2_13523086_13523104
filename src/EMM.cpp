@@ -13,6 +13,20 @@ double average(const vector<vector<vector<double>>>& img, int channel, int x, in
     return sum / N;
 }
 
+double standardDeviation(const vector<vector<vector<double>>>& img, int channel, int x, int y, int width, int height) {
+    double avg = average(img, channel, x, y, width, height);
+    double sum = 0;
+    for (int i = y; i < y + height; i++) {
+        for (int j = x; j < x + width; j++) {
+            sum += pow(img[i][j][channel] - avg, 2);
+        }
+    }
+
+    double stdDev = sqrt(sum / ((width * height) - 1));
+
+    return stdDev;
+}
+
 double variance(const vector<vector<vector<double>>>& img, int x, int y, int width, int height) {
     int N = width * height;
 
@@ -122,8 +136,16 @@ double entropy(const vector<vector<vector<double>>>& img, int x, int y, int widt
 }
 
 
-double structuralSimilarityIndex(const vector<vector<vector<double>>>& img1, const vector<vector<vector<double>>>& img2) {
-    
-    //TODO: Implementasi SSIM
-    return 0;
+double structuralSimilarityIndex(const vector<vector<vector<double>>>& img, int x, int y, int width, int height) {
+    double stdDevR = standardDeviation(img, 0, x, y, width, height);
+    double stdDevG = standardDeviation(img, 1, x, y, width, height);
+    double stdDevB = standardDeviation(img, 2, x, y, width, height);
+
+    double c1 = 6.5025, c2 = 58.5225; //c1 =   (0.01 * 255) ^ 2, c2 = (0.03 * 255) ^ 2
+    double ssimR = 0, ssimG = 0, ssimB = 0;
+    ssimR = c2 / (stdDevR * stdDevR + c2); //rumus cepet angjayy
+    ssimG = c2 / (stdDevG * stdDevG + c2);
+    ssimB = c2 / (stdDevB * stdDevB + c2);
+
+    return 0.299 * ssimR + 0.587 * ssimG + 0.114 * ssimB;
 }

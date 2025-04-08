@@ -31,10 +31,14 @@ void QuadTree::divideTree(QuadTree::Node* node, const vector<vector<vector<doubl
         case 2: error = meanAbsoluteDeviation(img, node->x, node->y, node->width, node->height); break;
         case 3: error = maxPixelDifference(img, node->x, node->y, node->width, node->height); break;
         case 4: error = entropy(img, node->x, node->y, node->width, node->height); break;
+        case 5: error = structuralSimilarityIndex(img, node->x, node->y, node->width, node->height); break;
         default: return;
     }
 
-    if (error <= threshold) {return;}
+    if (error <= threshold && method < 5) {return;}
+    if (error >= threshold && method == 5) {
+        return;
+    }
 
     int w1 = node->width / 2;
     int w2 = node->width - w1;      // ensures w1 + w2 == width

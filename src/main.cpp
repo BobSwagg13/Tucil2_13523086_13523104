@@ -121,7 +121,7 @@ int main() {
     } else if (errorMethod == 4) {
         maxThreshold = 8.0;
     } else if (errorMethod == 5) {
-        
+        maxThreshold = 1.0;
     }
 
     double low = 0.0, high = maxThreshold, tolerance = 0.01;
@@ -152,9 +152,19 @@ int main() {
                 targetCompressionValid = true;
             } else {
                 if (compressionNew < (targetCompression / 100.0)) {
-                    low = threshold;
+                    if(errorMethod < 5){
+                        low = threshold;
+                    }
+                    else{
+                        high = threshold;
+                    }
                 } else {
-                    high = threshold;
+                    if(errorMethod < 5){
+                        high = threshold;
+                    }
+                    else{
+                        low = threshold;
+                    }
                 }
             }
             
