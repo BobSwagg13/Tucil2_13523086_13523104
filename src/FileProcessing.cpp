@@ -61,7 +61,7 @@ void FileProcessing::saveImageAsPNG(const std::string& pathName, const std::vect
             }
         }
     }
-    cout << "Saving image to " << pathName << endl;
+    cout << "\nSaving image to " << pathName << endl;
     stbi_write_jpg(pathName.c_str(), width, height, channels, output.data(), 100); 
 
 }

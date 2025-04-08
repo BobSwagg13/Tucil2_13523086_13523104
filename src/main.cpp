@@ -213,7 +213,6 @@ int main() {
         }
 
         if (parentDir.empty() || fs::exists(parentDir)) {
-            std::cout << "Direktori valid. File akan disimpan ke: " << outputPath << std::endl;
             break;
         } else {
             std::cout << "Direktori tidak ditemukan: \"" << parentDir.string() << "\"\n";
@@ -244,7 +243,6 @@ int main() {
         }
 
         if (parentDir.empty() || fs::exists(parentDir)) {
-            std::cout << "Direktori valid. GIF akan disimpan ke: " << gifPath << std::endl;
             break;
         } else {
             std::cout << "Direktori tidak ditemukan: \"" << parentDir.string() << "\"\n";
@@ -253,7 +251,7 @@ int main() {
     }
 
     FileProcessing::saveImageAsPNG(outputPath, compressedImage);
-    cout << "Saving GIF to " << gifPath << endl;
+    cout << "\nSaving GIF to " << gifPath << endl;
 
     string command = "magick -delay 50 -loop 0 ";
 
@@ -263,7 +261,6 @@ int main() {
 
     command += gifPath;
 
-    cout << "Running command: " << command << endl;
     int result = system(command.c_str());
 
     if (result != 0) {
@@ -304,9 +301,6 @@ int main() {
     cout << "Persentase kompresi: "<< compressionRatio << "%" << endl;
     cout << "Kedalaman pohon: " << depth << endl;
     cout << "Banyak simpul pada pohon: " << nodeCount << endl;
-    if (!gifPath.empty()) {
-        cout << "GIF proses kompresi disimpan di: " << gifPath << endl;
-    }
 
     return 0;
 }
