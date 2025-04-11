@@ -254,12 +254,14 @@ int main() {
     }
 
     FileProcessing::saveImageAsPNG(outputPath, compressedImage);
-    cout << "\nSaving GIF to " << gifPath << endl;
+    cout << "Saving GIF to " << gifPath << endl;
 
-    string command = "magick -delay 50 -loop 0 ";
+    string command = "convert -delay 50 -loop 0 ";
 
     for (int i = 100; i < 100 + counter; i++) {
         command += "gifTemp/level_" + std::to_string(i) + fileType + " ";
+        cout << command << endl;
+
     }
 
     command += gifPath;
@@ -278,10 +280,10 @@ int main() {
             string filename = "gifTemp/level_" + std::to_string(i) + ".png";
             fs::remove(filename);
         }
-        else{
-            string filename = "gifTemp/level_" + std::to_string(i) + ".jpg";
-            fs::remove(filename);
-        }
+        // else{
+        //     string filename = "gifTemp/level_" + std::to_string(i) + ".jpg";
+        //     fs::remove(filename);
+        // }
     }
 
     uintmax_t compressedFileSize = fs::file_size(outputPath);

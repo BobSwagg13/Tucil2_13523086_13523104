@@ -12,7 +12,7 @@ $(TARGET): $(SRC)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SRC)
 
 # === RUN RULE ===
-run: all
+run: clean all
 	./$(TARGET)
 
 # === CLEAN RULE ===
