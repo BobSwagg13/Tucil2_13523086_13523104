@@ -42,6 +42,11 @@ To run the program after compiling:
 make run
 ```
 
+To clean the bin file:
+```bash
+make clean
+```
+
 ---
 
 ## ▶️ How to Use
