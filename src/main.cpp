@@ -90,8 +90,8 @@ int main() {
     }
 
     cout << "Target persentase kompresi 0 - 100%: ";
-    while (!(cin >> targetCompression) || targetCompression < 0.0 || targetCompression > 100.0) {
-        cout << "Persentase kompresi harus di antara 0 hingga 100: ";
+    while (!(cin >> targetCompression) || targetCompression < 0.0 || targetCompression > 1.0) {
+        cout << "Persentase kompresi harus di antara 0 hingga 1: ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
@@ -103,97 +103,6 @@ int main() {
     }
 
     cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
-
-    // === QUADTREE PROCESSING ===
-    
-    auto start = chrono::high_resolution_clock::now();
-    
-    auto compressedImage = image.data;
-
-    QuadTree quadTree;
-    QuadTree::Node* root;
-    double maxThreshold;
-    if(errorMethod == 1) {
-        maxThreshold = 16256.25; 
-    } else if (errorMethod == 2) {
-        maxThreshold = 127.5;
-    } else if (errorMethod == 3) {
-        maxThreshold = 255;
-    } else if (errorMethod == 4) {
-        maxThreshold = 8.0;
-    } else if (errorMethod == 5) {
-        maxThreshold = 1.0;
-    }
-
-    double low = 0.0, high = maxThreshold, tolerance = 0.01;
-    int maxIterations = 50, iteration = 0;
-
-    while (!targetCompressionValid && iteration < maxIterations) {
-        compressedImage = image.data;
-        if (targetCompressionEnabled) {
-            threshold = (low + high) / 2.0;
-        }
-
-        quadTree = QuadTree();
-        root = quadTree.buildTree(image.data, 0, 0, image.width, image.height);
-        quadTree.divideTree(root, image.data, errorMethod, threshold, minBlockSize);
-        quadTree.nodeToMatrix(root, compressedImage);
-
-        if (!targetCompressionEnabled) {
-            break;
-        } else {
-            fs::create_directories("targetCompressionTemp");
-
-            outputPath = "targetCompressionTemp/" + fileName;
-            FileProcessing::saveImageAsPNG(outputPath, compressedImage);
-            uintmax_t compressedFileSize = fs::file_size(outputPath);
-            fs::remove(outputPath);
-
-            double compressionNew = 1.0 - static_cast<double>(compressedFileSize) / originalFileSize;
-
-            if (abs((targetCompression / 100.0) - compressionNew) <= tolerance) {
-                targetCompressionValid = true;
-            } else {
-                if (compressionNew < (targetCompression / 100.0)) {
-                    if(errorMethod < 5){
-                        low = threshold;
-                    }
-                    else{
-                        high = threshold;
-                    }
-                } else {
-                    if(errorMethod < 5){
-                        high = threshold;
-                    }
-                    else{
-                        low = threshold;
-                    }
-                }
-            }
-            
-            cout << "Compressed file size: " << compressedFileSize << " bytes" << endl;
-            cout << "Target compression: " << targetCompression << "%" << endl;
-            cout << iteration << " Threshold: " << threshold<< ", Compression ratio: " << compressionNew << endl;
-        }
-        iteration++;
-    }
-    
-    fs::create_directories("gifTemp");
-    int counter = 0;
-    QuadTree::bfsAveragePerLevelImage(root, image.data, [&counter, fileType](const std::vector<std::vector<std::vector<double>>>& img, int level) {
-        if(fileType == ".png"){
-            FileProcessing::saveImageAsPNG("gifTemp/level_" + std::to_string(level + 100) + ".png", img);
-        }
-        else if(fileType == ".jpg" || fileType == ".jpeg"){
-            FileProcessing::saveImageAsPNG("gifTemp/level_" + std::to_string(level + 100) + ".jpg", img);
-        }
-        else{
-            cout << "Ekstensi file tidak valid!" << endl;
-        }
-        counter += 1;
-    });
-    
-    auto end = chrono::high_resolution_clock::now();
 
     while (true) {
         std::cout << "Alamat absolut gambar hasil kompresi: ";
@@ -253,14 +162,112 @@ int main() {
         }
     }
 
+    // === QUADTREE PROCESSING ===
+    
+    auto start = chrono::high_resolution_clock::now();
+    
+    auto compressedImage = image.data;
+
+    QuadTree quadTree;
+    QuadTree::Node* root;
+    double maxThreshold;
+    if(errorMethod == 1) {
+        maxThreshold = 16256.25; 
+    } else if (errorMethod == 2) {
+        maxThreshold = 127.5;
+    } else if (errorMethod == 3) {
+        maxThreshold = 255;
+    } else if (errorMethod == 4) {
+        maxThreshold = 8.0;
+    } else if (errorMethod == 5) {
+        maxThreshold = 1.0;
+    }
+
+    double low = 0.0, high = maxThreshold, tolerance = 0.01;
+    int maxIterations = 50, iteration = 0;
+
+    while (!targetCompressionValid && iteration < maxIterations) {
+        compressedImage = image.data;
+        if (targetCompressionEnabled) {
+            threshold = (low + high) / 2.0;
+        }
+
+        quadTree = QuadTree();
+        root = quadTree.buildTree(image.data, 0, 0, image.width, image.height);
+        quadTree.divideTree(root, image.data, errorMethod, threshold, minBlockSize);
+        quadTree.nodeToMatrix(root, compressedImage);
+
+        if (!targetCompressionEnabled) {
+            break;
+        } else {
+            fs::create_directories("targetCompressionTemp");
+
+            outputPath = "targetCompressionTemp/" + fileName;
+            FileProcessing::saveImageAsPNG(outputPath, compressedImage);
+            uintmax_t compressedFileSize = fs::file_size(outputPath);
+            fs::remove(outputPath);
+
+            double compressionNew = 1.0 - static_cast<double>(compressedFileSize) / originalFileSize;
+
+            if (abs((targetCompression) - compressionNew) <= tolerance) {
+                targetCompressionValid = true;
+            } else {
+                if (compressionNew < (targetCompression)) {
+                    if(errorMethod < 5){
+                        low = threshold;
+                    }
+                    else{
+                        high = threshold;
+                    }
+                } else {
+                    if(errorMethod < 5){
+                        high = threshold;
+                    }
+                    else{
+                        low = threshold;
+                    }
+                }
+            }
+            
+            cout << "Compressed file size: " << compressedFileSize << " bytes" << endl;
+            cout << "Target compression: " << targetCompression << "%" << endl;
+            cout << iteration << " Threshold: " << threshold<< ", Compression ratio: " << compressionNew << endl;
+        }
+        iteration++;
+    }
+    
+    cout << "\nSaving image to " << outputPath << endl;
     FileProcessing::saveImageAsPNG(outputPath, compressedImage);
+    auto end = chrono::high_resolution_clock::now();
+    
+    // === GIF PROCESSING ===
+    auto gifStart = chrono::high_resolution_clock::now();
+
+    fs::create_directories("gifTemp");
+    int counter = 0;
+    QuadTree::bfsAveragePerLevelImage(root, image.data, [&counter, fileType](const std::vector<std::vector<std::vector<double>>>& img, int level) {
+        if(fileType == ".png"){
+            FileProcessing::saveImageAsPNG("gifTemp/level_" + std::to_string(level + 100) + ".png", img);
+        }
+        else if(fileType == ".jpg"){
+            FileProcessing::saveImageAsPNG("gifTemp/level_" + std::to_string(level + 100) + ".jpg", img);
+        }
+        else if(fileType == ".jpeg"){
+            FileProcessing::saveImageAsPNG("gifTemp/level_" + std::to_string(level + 100) + ".jpeg", img);
+        }
+        else{
+            cout << "Ekstensi file tidak valid!" << endl;
+        }
+        counter += 1;
+    });
+    
+
     cout << "Saving GIF to " << gifPath << endl;
 
-    string command = "convert -delay 50 -loop 0 ";
+    string command = "magick -delay 50 -loop 0 ";
 
     for (int i = 100; i < 100 + counter; i++) {
         command += "gifTemp/level_" + std::to_string(i) + fileType + " ";
-        cout << command << endl;
 
     }
 
@@ -274,16 +281,21 @@ int main() {
         cout << "GIF successfully created." << endl;
     }
 
+    auto gifEnd = chrono::high_resolution_clock::now();
     
     for(int i = 100; i < 100 + counter; i++){
         if(fileType == ".png"){
             string filename = "gifTemp/level_" + std::to_string(i) + ".png";
             fs::remove(filename);
         }
-        // else{
-        //     string filename = "gifTemp/level_" + std::to_string(i) + ".jpg";
-        //     fs::remove(filename);
-        // }
+        else if(fileType == ".jpg"){
+            string filename = "gifTemp/level_" + std::to_string(i) + ".jpg";
+            fs::remove(filename);
+        }
+        else if(fileType == ".jpeg"){
+            string filename = "gifTemp/level_" + std::to_string(i) + ".jpeg";
+            fs::remove(filename);
+        }
     }
 
     uintmax_t compressedFileSize = fs::file_size(outputPath);
@@ -294,17 +306,18 @@ int main() {
     quadTree.deleteTree(root);
     
     chrono::duration<double> duration = end - start;
-
+    chrono::duration<double> gifDuration = gifEnd - gifStart;
 
     // === OUTPUTS ===
     double compressionRatio = 100 * (1.0 - (double)compressedFileSize / originalFileSize);
 
     cout << "\n=== HASIL EKSEKUSI ===" << endl;
-    cout << "Waktu eksekusi: " << duration.count() << " detik" << endl;
-    cout << "Ukuran gambar sebelum: "<< originalFileSize << endl;
-    cout << "Ukuran gambar setelah: "<< compressedFileSize << endl;
+    cout << "Waktu eksekusi image: " << duration.count() << " detik" << endl;
+    cout << "Waktu eksekusi GIF: " << gifDuration.count() << " detik" << endl;
+    cout << "Ukuran gambar sebelum: "<< originalFileSize << " bytes" << endl;
+    cout << "Ukuran gambar setelah: "<< compressedFileSize <<  " bytes" << endl;
     cout << "Persentase kompresi: "<< compressionRatio << "%" << endl;
-    cout << "Kedalaman pohon: " << depth << endl;
+    cout << "Kedalaman pohon: " << depth - 1 << endl;
     cout << "Banyak simpul pada pohon: " << nodeCount << endl;
 
     return 0;
